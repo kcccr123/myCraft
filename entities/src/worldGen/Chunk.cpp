@@ -1,4 +1,4 @@
-#include "header/worldGen/Chunk.h"
+#include "../../header/worldGen/Chunk.h"
 
 
 void Chunk::createChunkMesh(Texture* texture[2])

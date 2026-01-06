@@ -1,7 +1,12 @@
 #ifndef CAMERA_CLASS_H
 #define CAMERA_CLASS_H
 
+#ifndef __EMSCRIPTEN__
 #include<glad/glad.h>
+#endif
+#ifdef __EMSCRIPTEN__
+#include<GLES3/gl3.h>
+#endif
 #include<GLFW/glfw3.h>
 #include<glm/glm.hpp>
 #include<glm/gtc/matrix_transform.hpp>

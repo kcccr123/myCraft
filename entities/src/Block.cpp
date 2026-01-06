@@ -1,4 +1,4 @@
-#include "header/Block.h"
+#include "../header/Block.h"
 
 
 Block::Block(GLfloat x, GLfloat y, GLfloat z, int id)

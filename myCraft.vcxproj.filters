@@ -1475,6 +1475,17 @@
       <Filter>Resource Files\shaders</Filter>
     </None>
     <None Include="libraries\include\mygui\misc\debuggers\imgui.natstepfilter" />
+    <None Include="shaders\imgui.vert" />
+    <None Include="shaders\imgui.frag" />
+    <None Include="shaders\web\default.vert" />
+    <None Include="shaders\web\default.frag" />
+    <None Include="shaders\web\light.vert" />
+    <None Include="shaders\web\light.frag" />
+    <None Include="shaders\desktop\default.vert" />
+    <None Include="shaders\desktop\default.frag" />
+    <None Include="shaders\desktop\light.vert" />
+    <None Include="shaders\desktop\light.frag" />
+    <None Include="SHADER_SETUP.md" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="textures\brick.png">

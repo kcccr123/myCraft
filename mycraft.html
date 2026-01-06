@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyCraft - WebAssembly Test</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #1a1a1a;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            font-family: Arial, sans-serif;
+            color: #ffffff;
+        }
+        
+        #status {
+            margin: 20px;
+            padding: 10px 20px;
+            background-color: #333;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 8px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        canvas {
+            border: 2px solid #444;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+        }
+        
+        #canvas-container {
+            position: relative;
+        }
+        
+        .error {
+            background-color: #d32f2f;
+            color: white;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px;
+            max-width: 600px;
+        }
+    </style>
+</head>
+<body>
+    <h1>MyCraft WebAssembly</h1>
+    <div id="status">
+        <span class="spinner"></span>
+        <span id="status-text">Loading...</span>
+    </div>
+    <div id="canvas-container">
+        <canvas id="canvas" oncontextmenu="event.preventDefault()" tabindex=-1></canvas>
+    </div>
+    
+    <script type='text/javascript'>
+        var statusElement = document.getElementById('status');
+        var statusText = document.getElementById('status-text');
+        var spinner = document.querySelector('.spinner');
+        
+        var Module = {
+            preRun: [],
+            postRun: [],
+            print: (function() {
+                return function(text) {
+                    console.log(text);
+                };
+            })(),
+            printErr: function(text) {
+                console.error(text);
+            },
+            canvas: (function() {
+                var canvas = document.getElementById('canvas');
+                canvas.addEventListener("webglcontextlost", function(e) { 
+                    alert('WebGL context lost. You will need to reload the page.'); 
+                    e.preventDefault(); 
+                }, false);
+                return canvas;
+            })(),
+            setStatus: function(text) {
+                if (!Module.setStatus.last) Module.setStatus.last = { time: Date.now(), text: '' };
+                if (text === Module.setStatus.last.text) return;
+                
+                statusText.innerHTML = text;
+                
+                if (text === '') {
+                    spinner.style.display = 'none';
+                    statusElement.style.display = 'none';
+                } else if (text.indexOf('Exception') !== -1 || text.indexOf('Error') !== -1) {
+                    spinner.style.display = 'none';
+                    statusElement.className = 'error';
+                    statusElement.innerHTML = text;
+                }
+            },
+            totalDependencies: 0,
+            monitorRunDependencies: function(left) {
+                this.totalDependencies = Math.max(this.totalDependencies, left);
+                Module.setStatus(left ? 'Preparing... (' + (this.totalDependencies-left) + '/' + this.totalDependencies + ')' : 'All downloads complete.');
+            }
+        };
+        
+        Module.setStatus('Downloading...');
+        
+        window.onerror = function(event) {
+            Module.setStatus('Exception thrown, see JavaScript console');
+            spinner.style.display = 'none';
+            Module.setStatus = function(text) {
+                if (text) console.error('[post-exception status] ' + text);
+            };
+        };
+    </script>
+    <script async type="text/javascript" src="mycraft.js"></script>
+</body>
+</html>

@@ -1,4 +1,7 @@
 #include"VAO.h"
+#ifdef __EMSCRIPTEN__
+#include<GLES3/gl3.h>
+#endif
 
 // Constructor that generates a VAO ID
 VAO::VAO()

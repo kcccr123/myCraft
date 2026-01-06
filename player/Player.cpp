@@ -1,4 +1,9 @@
 #include"Player.h"
+#ifdef __EMSCRIPTEN__
+#include<GLES3/gl3.h>
+#include<emscripten.h>
+#include<emscripten/html5.h>
+#endif
 
 Player::Player(int width, int height, glm::vec3 position)
 {
@@ -350,12 +355,12 @@ void Player::addItemToInventory(int blockID, int amount)
 	bool flag = false;
 	int firstEmpty = NULL;
 	for (int i = 0; i < inventoryArray.size(); i++) {
-		if (inventoryArray[i][1] == -1 and flag == false) {
+		if (inventoryArray[i][1] == -1 && flag == false) {
 			firstEmpty = i;
 			flag = true;
 			
 		}	
-		else if (inventoryArray[i][1] == blockID and inventoryArray[i][0] < 16) {
+		else if (inventoryArray[i][1] == blockID && inventoryArray[i][0] < 16) {
 			inventoryArray[i][0] += amount;
 
 			return;
@@ -657,30 +662,79 @@ Handle player inputs
 */
 void Player::Inputs(GLFWwindow* window, float delta, std::vector<glm::vec3> blockCords, std::vector<Triangle> playerVerts, std::deque<std::unique_ptr<UpdatePacket>>* updateQue, int posX, int posY)
 {
+#ifdef __EMSCRIPTEN__
+	// Check if pointer lock is actually active in the browser
+	EmscriptenPointerlockChangeEvent pointerLockStatus;
+	emscripten_get_pointerlock_status(&pointerLockStatus);
+	bool browserPointerLocked = pointerLockStatus.isActive;
+	
+	// If browser doesn't have pointer lock, force menu mode and skip all gameplay input
+	if (!browserPointerLocked)
+	{
+		// Reset cursor locked state so we'll request it again when user clicks
+		if (cursorLocked)
+		{
+			cursorLocked = false;
+			firstClick = true;
+		}
+		// Don't process any game inputs when pointer isn't locked
+		return;
+	}
+#endif
+
 	/*
 	Code below slaves mouse to center of screen.
 	*/
 	// -----------------------------------------------------------------------------------------------
 	// Prevents camera from jumping on the first click
-	if (menu == false and inventory == false)
+	if (menu == false && inventory == false)
 	{
-		// Hides mouse cursor
-		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-		if (firstClick)
+		// Only call glfwSetInputMode when state CHANGES (important for Emscripten/browser)
+		if (!cursorLocked)
 		{
-			glfwSetCursorPos(window, (width / 2), (height / 2));
-			firstClick = false;
+#ifndef __EMSCRIPTEN__
+			// On desktop, we control cursor lock. On web, browser handles pointer lock.
+			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+#endif
+			cursorLocked = true;
+			firstClick = true;  // Reset firstClick when re-entering gameplay
 		}
+		
 		// Stores the coordinates of the cursor
 		double mouseX;
 		double mouseY;
 		// Fetches the coordinates of the cursor
 		glfwGetCursorPos(window, &mouseX, &mouseY);
+		
+		if (firstClick)
+		{
+#ifndef __EMSCRIPTEN__
+			// Only set cursor position on desktop - browser handles this via pointer lock
+			glfwSetCursorPos(window, (width / 2), (height / 2));
+			mouseX = width / 2;
+			mouseY = height / 2;
+#endif
+			// Initialize last mouse position to current position to prevent jump
+			lastMouseX = mouseX;
+			lastMouseY = mouseY;
+			firstClick = false;
+		}
 
-		// Normalizes and shifts the coordinates of the cursor such that they begin in the middle of the screen
-		// and then "transforms" them into degrees 
+#ifdef __EMSCRIPTEN__
+		// For Emscripten: calculate delta from last frame position
+		// glfwGetCursorPos returns cumulative position, not deltas
+		double deltaX = mouseX - lastMouseX;
+		double deltaY = mouseY - lastMouseY;
+		lastMouseX = mouseX;
+		lastMouseY = mouseY;
+		
+		float rotX = sensitivity * (float)(deltaY) / height;
+		float rotY = sensitivity * (float)(deltaX) / width;
+#else
+		// Desktop: normalize from center of screen
 		float rotX = sensitivity * (float)(mouseY - (height / 2)) / height;
 		float rotY = sensitivity * (float)(mouseX - (width / 2)) / width;
+#endif
 
 		// Calculates upcoming vertical change in the Orientation
 		glm::vec3 newOrientation = glm::rotate(Orientation, glm::radians(-rotX), glm::normalize(glm::cross(Orientation, Up)));
@@ -693,12 +747,21 @@ void Player::Inputs(GLFWwindow* window, float delta, std::vector<glm::vec3> bloc
 		// Rotates the Orientation left and right
 		Orientation = glm::rotate(Orientation, glm::radians(-rotY), Up);
 
-		// Sets mouse cursor to the middle of the screen so that it doesn't end up roaming around
+#ifndef __EMSCRIPTEN__
+		// Only reset cursor position on desktop - browser pointer lock handles this automatically
 		glfwSetCursorPos(window, (width / 2), (height / 2));
+#endif
 	}
 	else {
-		// unhide cursor
-		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+		// Only call glfwSetInputMode when state CHANGES
+		if (cursorLocked)
+		{
+#ifndef __EMSCRIPTEN__
+			// On desktop, we control cursor lock. On web, browser handles pointer lock.
+			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+#endif
+			cursorLocked = false;
+		}
 	}
 
 	if (!menu)
@@ -846,6 +909,8 @@ void Player::Inputs(GLFWwindow* window, float delta, std::vector<glm::vec3> bloc
 				if (inventory == false)
 				{
 					inventory = true;
+					// Reset virtual cursor to center when opening inventory
+					resetVirtualCursor();
 				}
 				else {
 					inventory = false;
@@ -855,7 +920,39 @@ void Player::Inputs(GLFWwindow* window, float delta, std::vector<glm::vec3> bloc
 		}
 	}
 
+#ifdef __EMSCRIPTEN__
+	// Virtual cursor handling for UI mode on web
+	// When in inventory/menu mode, accumulate mouse deltas into virtual cursor
+	if (inventory || menu) {
+		double mouseX, mouseY;
+		glfwGetCursorPos(window, &mouseX, &mouseY);
+		
+		// Initialize virtual cursor if not done yet
+		if (!virtualCursorInitialized) {
+			resetVirtualCursor();
+			lastMouseX = mouseX;
+			lastMouseY = mouseY;
+		}
+		
+		// Calculate delta from last frame
+		double deltaX = mouseX - lastMouseX;
+		double deltaY = mouseY - lastMouseY;
+		lastMouseX = mouseX;
+		lastMouseY = mouseY;
+		
+		// Apply delta to virtual cursor with sensitivity
+		virtualCursorX += (float)deltaX;
+		virtualCursorY += (float)deltaY;
+		
+		// Clamp to screen bounds
+		virtualCursorX = std::max(0.0f, std::min((float)width, virtualCursorX));
+		virtualCursorY = std::max(0.0f, std::min((float)height, virtualCursorY));
+	}
+#endif
+
 	// open options menu
+#ifndef __EMSCRIPTEN__
+	// On desktop, ESC toggles menu. On web, browser handles pause via pointer lock release.
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
 		if (escPressed == false)
 		{
@@ -870,6 +967,7 @@ void Player::Inputs(GLFWwindow* window, float delta, std::vector<glm::vec3> bloc
 		}
 
 	}
+#endif
 
 
 	/*

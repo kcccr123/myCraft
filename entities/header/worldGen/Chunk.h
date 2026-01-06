@@ -1,5 +1,5 @@
 #pragma once
-#include "header/Block.h"
+#include "../Block.h"
 #include "compBlock.h"
 #include <vector>
 #include "../../../constants.h"

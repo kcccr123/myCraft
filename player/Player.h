@@ -1,7 +1,12 @@
 #ifndef PLAYER_CLASS_H
 #define PLAYER_CLASS_H
 
+#ifndef __EMSCRIPTEN__
 #include<glad/glad.h>
+#endif
+#ifdef __EMSCRIPTEN__
+#include<GLES3/gl3.h>
+#endif
 #include<GLFW/glfw3.h>
 #include<glm/glm.hpp>
 #include<glm/gtc/matrix_transform.hpp>
@@ -63,6 +68,16 @@ private:
 	bool inAir = false;
 	bool menu = false;
 	bool inventory = false;
+	bool cursorLocked = false;  // Track cursor lock state to avoid calling every frame
+	
+	// For Emscripten: track previous mouse position to calculate delta
+	double lastMouseX = 0.0;
+	double lastMouseY = 0.0;
+
+	// Virtual cursor for UI mode (when pointer lock is active but we need UI interaction)
+	float virtualCursorX = 0.0f;
+	float virtualCursorY = 0.0f;
+	bool virtualCursorInitialized = false;
 
 	// key Pressed?
 	bool pPressed = false;
@@ -140,6 +155,12 @@ public:
 	// Get menu status
 	bool isMenuOpen();
 	bool isInventoryOpen();
+
+	// Virtual cursor for UI mode
+	float getVirtualCursorX() const { return virtualCursorX; }
+	float getVirtualCursorY() const { return virtualCursorY; }
+	bool isInUIMode() const { return menu || inventory; }
+	void resetVirtualCursor() { virtualCursorX = width / 2.0f; virtualCursorY = height / 2.0f; virtualCursorInitialized = true; }
 };
 
 #endif

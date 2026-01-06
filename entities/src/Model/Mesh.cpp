@@ -1,4 +1,7 @@
 #include "../../header/Model/Mesh.h"
+#ifdef __EMSCRIPTEN__
+#include<GLES3/gl3.h>
+#endif
 
 Mesh::Mesh(std::vector <Vertex>& vertices, std::vector <GLuint>& indices, std::vector <Texture>& textures)
 {

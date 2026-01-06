@@ -1,4 +1,7 @@
 #include"shaderClass.h"
+#ifdef __EMSCRIPTEN__
+#include<GLES3/gl3.h>
+#endif
 
 // Reads a text file and outputs a string with everything in the text file
 std::string get_file_contents(const char* filename)

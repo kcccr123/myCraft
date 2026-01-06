@@ -2,7 +2,12 @@
 #define VBO_CLASS_H
 
 #include<glm/glm.hpp>
+#ifndef __EMSCRIPTEN__
 #include<glad/glad.h>
+#endif
+#ifdef __EMSCRIPTEN__
+#include<GLES3/gl3.h>
+#endif
 #include<vector>
 
 // Structure to standardize the vertices used in the meshes

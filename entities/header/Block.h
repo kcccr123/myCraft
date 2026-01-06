@@ -1,7 +1,12 @@
 #pragma once
 
 #include<iostream>
+#ifndef __EMSCRIPTEN__
 #include<glad/glad.h>
+#endif
+#ifdef __EMSCRIPTEN__
+#include<GLES3/gl3.h>
+#endif
 #include<GLFW/glfw3.h>
 #include<stb/stb_image.h>
 #include<glm/glm.hpp>
@@ -9,14 +14,14 @@
 #include<glm/gtc/type_ptr.hpp>
 #include <tuple>
 #include <vector>
-#include"header/Model/Mesh.h"
+#include"Model/Mesh.h"
 #include "../../shaders/EBO.h"
 #include "../../shaders/VBO.h"
 #include "../../shaders/VAO.h"
 #include <utility> 
 #include <memory>
 #include "../../Texture.h"
-#include "header/Model/Triangle.h"
+#include "Model/Triangle.h"
 #include "../../player/Player.h"
 
 

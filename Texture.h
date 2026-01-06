@@ -1,7 +1,12 @@
 #ifndef TEXTURE_CLASS_H
 #define TEXTURE_CLASS_H
 
+#ifndef __EMSCRIPTEN__
 #include<glad/glad.h>
+#endif
+#ifdef __EMSCRIPTEN__
+#include<GLES3/gl3.h>
+#endif
 #include<stb/stb_image.h>
 
 #include"shaders/shaderClass/shaderClass.h"

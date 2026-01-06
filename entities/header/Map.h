@@ -1,8 +1,8 @@
 #pragma once
 
-#include "header/Block.h"
-#include "header/worldGen/Chunk.h"
-#include "header/worldGen/compBlock.h"
+#include "Block.h"
+#include "worldGen/Chunk.h"
+#include "worldGen/compBlock.h"
 #include <glm/gtc/noise.hpp>
 #include <vector>
 #include "tuple"

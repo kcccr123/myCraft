@@ -3,12 +3,12 @@
 
 #include<string>
 
-#include"../Texture.h"
-#include"../shaders/shaderClass/shaderClass.h"
-#include"../shaders/VAO.h"
-#include"../shaders/VBO.h"
-#include"../shaders/EBO.h"
-#include"../player/player.h"
+#include"../../../Texture.h"
+#include"../../../shaders/shaderClass/shaderClass.h"
+#include"../../../shaders/VAO.h"
+#include"../../../shaders/VBO.h"
+#include"../../../shaders/EBO.h"
+#include"../../../player/Player.h"
 
 class Mesh
 {

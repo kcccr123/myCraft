@@ -1,4 +1,4 @@
-#include "header/Map.h"
+#include "../header/Map.h"
 
 
 Map::Map(int chunk)
@@ -121,8 +121,8 @@ int Map::removeBlockFromChunk(int xID, int yID, int x, int y, int z)
 
 	for (int i = 0; i < BlocksVec.size(); i++) {
 		glm::vec3 temp = BlocksVec[i]->getBlockCords();
-		if (temp.x == x and temp.y == y and temp.z == z) {
-			BlocksVec.erase(BlocksVec.begin() +	i);
+		if (temp.x == x && temp.y == y && temp.z == z) {
+			BlocksVec.erase(BlocksVec.begin() + i);
 			numBlocks -= 1;
 		
 		}

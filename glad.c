@@ -22,7 +22,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#ifndef __EMSCRIPTEN__
 #include <glad/glad.h>
+#endif
 
 static void* get_proc(const char *namez);
 

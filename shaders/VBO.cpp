@@ -1,4 +1,7 @@
 #include"VBO.h"
+#ifdef __EMSCRIPTEN__
+#include<GLES3/gl3.h>
+#endif
 
 // Constructor that generates a Vertex Buffer Object and links it to vertices
 VBO::VBO(std::vector<Vertex>& vertices)

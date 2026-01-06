@@ -1,4 +1,4 @@
-#include "header/worldGen/compBlock.h"
+#include "../../header/worldGen/compBlock.h"
 
 compBlock::compBlock(int x, int y, int z, int id)
 {
